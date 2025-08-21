@@ -63,6 +63,41 @@ namespace AsicValidationPoc.Services
             }
         }
 
+        public async Task<List<CompanyInfo>> GetAllCompaniesWithDetailsAsync()
+        {
+            _logger.LogInformation("Getting all companies with enriched details for export...");
+            
+            var companies = await GetCompaniesAsync();
+            _logger.LogInformation("Starting to enrich {Count} companies with additional details", companies.Count);
+            
+            // Enrich a sample of companies with ACN details (to avoid overwhelming the server)
+            var enrichedCount = 0;
+            var maxEnrichment = Math.Min(50, companies.Count); // Limit to 50 companies to avoid timeout
+            
+            for (int i = 0; i < maxEnrichment; i++)
+            {
+                try
+                {
+                    await EnrichCompanyDetails(companies[i]);
+                    enrichedCount++;
+                    
+                    // Add small delay to be respectful to the server
+                    if (i % 5 == 0 && i > 0)
+                    {
+                        await Task.Delay(1000); // 1 second delay every 5 requests
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to enrich details for company: {CompanyName}", companies[i].Name);
+                }
+            }
+            
+            _logger.LogInformation("Enriched {EnrichedCount} out of {TotalCount} companies with additional details", enrichedCount, companies.Count);
+            
+            return companies;
+        }
+
         public void ClearCache()
         {
             _companies = null;
