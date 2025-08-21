@@ -1,0 +1,59 @@
+@page
+@model CompanyDetailsModel
+@inject AsicValidationPoc.Services.CompanyLookupService CompanyService
+@{
+    ViewData["Title"] = "Company Details";
+}
+
+<div class="container mt-5">
+    <h2>Company Details</h2>
+    @if (Model.Company != null)
+    {
+        <dl class="row">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@Model.Company.Name</dd>
+            
+            @if (!string.IsNullOrEmpty(Model.Company.TradingAs))
+            {
+                <dt class="col-sm-3">Trading As</dt>
+                <dd class="col-sm-9">@Model.Company.TradingAs</dd>
+            }
+            
+            <dt class="col-sm-3">License Type</dt>
+            <dd class="col-sm-9">@Model.Company.LicenseType</dd>
+            
+            @if (!string.IsNullOrEmpty(Model.Company.LicenseDate))
+            {
+                <dt class="col-sm-3">License Date</dt>
+                <dd class="col-sm-9">@Model.Company.LicenseDate</dd>
+            }
+            
+            @if (!string.IsNullOrEmpty(Model.Company.ACN))
+            {
+                <dt class="col-sm-3">ACN</dt>
+                <dd class="col-sm-9">@Model.Company.ACN</dd>
+            }
+            
+            @if (!string.IsNullOrEmpty(Model.Company.OtherDetails))
+            {
+                <dt class="col-sm-3">Additional Details</dt>
+                <dd class="col-sm-9">
+                    @foreach (var detail in Model.Company.OtherDetails.Split('\n'))
+                    {
+                        <div>@detail</div>
+                    }
+                </dd>
+            }
+            
+            <dt class="col-sm-3">Source</dt>
+            <dd class="col-sm-9"><a href="@Model.Company.DetailsUrl" target="_blank">View on ESC VIC</a></dd>
+        </dl>
+        
+        <a href="/" class="btn btn-primary">Back to Search</a>
+    }
+    else
+    {
+        <div class="alert alert-danger">Company not found.</div>
+        <a href="/" class="btn btn-primary">Back to Search</a>
+    }
+</div>

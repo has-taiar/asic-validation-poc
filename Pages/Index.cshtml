@@ -1,0 +1,71 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+
+<div class="container mt-5">
+    <h2>Search Licensed Essential Services Companies (VIC)</h2>
+    <form id="searchForm" class="mb-3">
+        <div class="input-group">
+            <input type="text" class="form-control" id="searchInput" placeholder="Enter company name..." />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+    <div id="results"></div>
+    <div id="loading" class="d-none">
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Searching companies...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('searchForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const query = document.getElementById('searchInput').value;
+        if (!query) return;
+        
+        const resultsDiv = document.getElementById('results');
+        const loadingDiv = document.getElementById('loading');
+        
+        // Show loading
+        loadingDiv.classList.remove('d-none');
+        resultsDiv.innerHTML = '';
+        
+        try {
+            const res = await fetch(`/api/company/search?query=${encodeURIComponent(query)}`);
+            const data = await res.json();
+            
+            // Hide loading
+            loadingDiv.classList.add('d-none');
+            
+            if (data.length === 0) {
+                resultsDiv.innerHTML = '<div class="alert alert-warning">No companies found matching your search.</div>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<h4>Search Results (' + data.length + ' found)</h4>' +
+                '<div class="list-group">' +
+                data.map(c => `
+                    <a href="/CompanyDetails?name=${encodeURIComponent(c.name)}" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">${c.name}</h5>
+                            <small>${c.licenseType || 'License Type Not Available'}</small>
+                        </div>
+                        ${c.tradingAs ? `<p class="mb-1"><strong>Trading As:</strong> ${c.tradingAs}</p>` : ''}
+                        ${c.licenseDate ? `<small><strong>License Date:</strong> ${c.licenseDate}</small>` : ''}
+                    </a>
+                `).join('') +
+                '</div>';
+        } catch (error) {
+            loadingDiv.classList.add('d-none');
+            resultsDiv.innerHTML = '<div class="alert alert-danger">Error searching companies. Please try again.</div>';
+            console.error('Search error:', error);
+        }
+    });
+</script>
